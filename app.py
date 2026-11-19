@@ -1,3 +1,4 @@
+"""Interface Streamlit pour l'analyse de sentiments IMDb avec DistilBERT et XAI."""
 from __future__ import annotations
 
 import html
@@ -26,29 +27,129 @@ st.set_page_config(
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
-:root {--accent:#79e3c3;--ink:#e8eef8;--muted:#9eaec6;--line:#2a3850;}
-html,body,[class*="css"],p,div {font-family:'DM Sans',sans-serif;}
-.stApp {background: radial-gradient(ellipse 70% 45% at 75% -10%,#1c3540 0%,transparent 80%),#0b1321;color:var(--ink);}
-h1,h2,h3 {font-family:'Space Grotesk',sans-serif;letter-spacing:-.035em;}
-section[data-testid="stSidebar"] {background:#0f1b2b;border-right:1px solid #293950;}
-.stButton>button[kind="primary"] {background:#79e3c3;color:#0b1922;border:0;font-weight:700;border-radius:11px;}
-.stButton>button[kind="primary"]:hover {background:#a1f3db;color:#07151c;}
-.stButton>button {border-radius:11px;}
-div[data-testid="stMetric"] {background:#122137;padding:18px 20px;border:1px solid #2c4056;border-radius:15px;}
-div[data-testid="stMetricValue"] {color:#e8f5fb;font-family:'Space Grotesk',sans-serif;}
-textarea {font-family:'DM Sans',sans-serif !important;}
-.brand {font-family:'Space Grotesk',sans-serif;font-weight:700;letter-spacing:.18em;font-size:1.05rem;color:#79e3c3;}
-.eyebrow {text-transform:uppercase;letter-spacing:.18em;color:#84cbbb;font-size:.72rem;font-weight:700;}
-.subtitle {color:#a8b8cb;font-size:1.04rem;margin-top:-8px;margin-bottom:25px;}
-.result-card {border:1px solid #2d4356;background:linear-gradient(125deg,#15273a,#112033);padding:20px 24px;border-radius:16px;margin:12px 0;}
-.result-title {font:700 1.6rem 'Space Grotesk',sans-serif;color:#eef8fc;}
-.result-overline {text-transform:uppercase;letter-spacing:.16em;color:#8fa8bc;font-size:.75rem;}
-.explain {line-height:2.55;font-size:1.1rem;background:#102033;border:1px solid #293e56;padding:18px;border-radius:14px;overflow-wrap:anywhere;}
+
+/* Palette unifiée. Les couleurs de texte et de fond sont fixées ensemble. */
+:root {
+  --page:#0B1422; --sidebar:#101D2E; --panel:#17263A;
+  --panel-hover:#20334A; --border:#34465C;
+  --text:#F4F7FD; --muted:#C2D0E0; --accent:#82E7C5;
+  --accent-ink:#08241C; --warning:#FFD39B;
+}
+.stApp, [data-testid="stAppViewContainer"] {
+  background: radial-gradient(ellipse 64% 44% at 80% 0%, #193446 0%, transparent 75%), var(--page);
+  color:var(--text);
+}
+html, body, .stApp, .stApp button, .stApp textarea, .stApp input,
+.stApp select {font-family:'DM Sans',sans-serif;}
+.stApp h1,.stApp h2,.stApp h3,.stApp h4,
+.brand,.result-title {font-family:'Space Grotesk',sans-serif;letter-spacing:-.025em;color:var(--text);}
+.stApp p, .stApp li, .stApp label, .stApp small,
+.stApp [data-testid="stMarkdownContainer"] {color:var(--text);}
+.stApp [data-testid="stCaptionContainer"],
+.stApp [data-testid="stCaptionContainer"] p {color:var(--muted) !important;}
+.stApp a {color:var(--accent);}
+.stApp hr {border-color:var(--border);}
+
+/* Sidebar : lisibilité de la navigation, slider et info. */
+section[data-testid="stSidebar"], section[data-testid="stSidebar"] > div {
+  background:var(--sidebar) !important;
+}
+section[data-testid="stSidebar"] {border-right:1px solid var(--border);}
+section[data-testid="stSidebar"] p,
+section[data-testid="stSidebar"] label,
+section[data-testid="stSidebar"] span {color:var(--text);}
+section[data-testid="stSidebar"] [data-testid="stCaptionContainer"] p {color:var(--muted) !important;}
+section[data-testid="stSidebar"] [data-testid="stRadio"] label {
+  color:var(--text) !important;border-radius:8px;padding:6px 4px;
+}
+section[data-testid="stSidebar"] [data-testid="stRadio"] label:hover {background:var(--panel-hover);}
+section[data-testid="stSidebar"] [data-testid="stSlider"] {color:var(--text);}
+
+/* Champ texte : pas de textarea blanche avec caractères pâles. */
+.stApp [data-testid="stTextArea"] label,
+.stApp [data-testid="stTextArea"] label p {color:var(--text) !important;font-weight:600;}
+.stApp [data-testid="stTextArea"] textarea,
+.stApp [data-testid="stTextArea"] textarea:focus {
+  background:var(--panel) !important;
+  color:var(--text) !important;
+  -webkit-text-fill-color:var(--text) !important;
+  border:1px solid var(--border) !important;
+  border-radius:12px !important;
+  caret-color:var(--accent) !important;
+  box-shadow:none !important;
+}
+.stApp [data-testid="stTextArea"] textarea::placeholder {
+  color:#ADC0D4 !important; -webkit-text-fill-color:#ADC0D4 !important;
+  opacity:1 !important;
+}
+.stApp [data-testid="stTextArea"] textarea:focus {border-color:var(--accent) !important;}
+
+/* Boutons et états hover / focus. */
+.stApp .stButton > button,
+.stApp .stDownloadButton > button {
+  border-radius:11px !important;
+  min-height:42px;
+  font-weight:700;
+  transition:background-color .15s ease,border-color .15s ease;
+}
+.stApp .stButton > button[kind="primary"] {
+  background:var(--accent) !important;color:var(--accent-ink) !important;
+  border:1px solid var(--accent) !important;
+}
+.stApp .stButton > button[kind="primary"] * {color:var(--accent-ink) !important;fill:var(--accent-ink) !important;}
+.stApp .stButton > button[kind="primary"]:hover {background:#AEF5DB !important;}
+.stApp .stButton > button:not([kind="primary"]),
+.stApp .stDownloadButton > button {
+  background:var(--panel) !important;color:var(--text) !important;
+  border:1px solid var(--border) !important;
+}
+.stApp .stButton > button:not([kind="primary"]):hover,
+.stApp .stDownloadButton > button:hover {border-color:var(--accent) !important;background:var(--panel-hover) !important;}
+.stApp .stButton > button:not([kind="primary"]) *,
+.stApp .stDownloadButton > button * {color:var(--text) !important;}
+
+/* Cartes métriques et graphique. */
+.stApp [data-testid="stMetric"] {
+  background:var(--panel);padding:20px;border:1px solid var(--border);border-radius:14px;
+}
+.stApp [data-testid="stMetricLabel"],
+.stApp [data-testid="stMetricLabel"] p {color:var(--muted) !important;}
+.stApp [data-testid="stMetricValue"],
+.stApp [data-testid="stMetricValue"] * {
+  color:var(--text) !important;font-family:'Space Grotesk',sans-serif;
+}
+.stApp [data-testid="stAlert"] {border-radius:12px;}
+.stApp [data-testid="stAlert"] p,
+.stApp [data-testid="stAlert"] span {color:inherit;}
+.stApp [data-testid="stExpander"] {background:var(--panel);border:1px solid var(--border);border-radius:12px;}
+
+/* Blocs éditoriaux spécifiques à FRAME. */
+.brand {font-weight:700;letter-spacing:.14em;font-size:1.06rem;color:var(--accent);}
+.eyebrow {text-transform:uppercase;letter-spacing:.16em;color:var(--accent);font-size:.73rem;font-weight:700;}
+.subtitle {color:var(--muted) !important;font-size:1.02rem;margin-top:-8px;margin-bottom:24px;}
+.result-card {
+  border:1px solid var(--border);background:linear-gradient(125deg,#1B3043,#17273A);
+  padding:22px 24px;border-radius:15px;margin:12px 0;
+}
+.result-title {font-size:1.7rem;font-weight:700;line-height:1.35;}
+.result-overline {text-transform:uppercase;letter-spacing:.13em;color:var(--muted);font-size:.77rem;}
+.explain {
+  line-height:2.55;font-size:1.06rem;color:var(--text);
+  background:var(--panel);border:1px solid var(--border);
+  padding:20px;border-radius:14px;overflow-wrap:anywhere;
+}
 .token {padding:4px 6px;margin:2px;border-radius:5px;display:inline;box-decoration-break:clone;-webkit-box-decoration-break:clone;}
-.footer {color:#8da1b5;font-size:.8rem;border-top:1px solid #27384d;padding-top:15px;margin-top:35px;}
+.footer {color:var(--muted);font-size:.83rem;border-top:1px solid var(--border);padding-top:16px;margin-top:36px;}
+
+/* Amélioration de l'accessibilité au clavier. */
+.stApp button:focus-visible,.stApp textarea:focus-visible {outline:2px solid var(--accent) !important;outline-offset:2px;}
+@media (max-width: 750px) {
+  .result-card {padding:16px;}
+  .stApp [data-testid="stMetric"] {padding:13px;}
+  .stApp h1 {font-size:2rem;}
+}
 </style>
 """, unsafe_allow_html=True)
-
 
 @st.cache_resource(show_spinner="Chargement du modèle DistilBERT...")
 def load_artifacts():
