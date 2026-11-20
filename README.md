@@ -1,10 +1,10 @@
-# FRAME NLP — IMDb Sentiment Intelligence & XAI Studio
+# FRAME NLP - IMDb Sentiment Intelligence & XAI Studio
 
 Plateforme d'analyse de sentiments et d'explicabilité locale (XAI) pour modèles de langage Transformers (DistilBERT fine-tuné sur IMDb) avec **Layer Integrated Gradients** (Captum).
 
 ---
 
-## 🚀 Nouveautés & Améliorations de l'Interface
+## Nouveautés & Améliorations de l'Interface
 
 - **Pipeline Unifié en 1 Clic** : Dès que l'utilisateur saisit ou charge une critique et clique sur *"Analyser le sentiment"*, la classification DistilBERT et le calcul complet de l'explicabilité XAI s'exécutent automatiquement en une seule étape (aucun bouton séparé requis).
 - **Indicateurs Utiles dans la Barre Latérale (Sidebar)** :
@@ -24,7 +24,7 @@ Plateforme d'analyse de sentiments et d'explicabilité locale (XAI) pour modèle
 
 ---
 
-## 📦 Installation & Lancement
+## Installation & Lancement
 
 1. **Activer l'environnement virtuel** :
    ```powershell
@@ -41,7 +41,7 @@ Plateforme d'analyse de sentiments et d'explicabilité locale (XAI) pour modèle
 
 ---
 
-## 🧠 Architecture & XAI
+## Architecture & XAI
 
 - **Modèle** : `DistilBertForSequenceClassification` fine-tuné pour la classification binaire (0 = Négatif, 1 = Positif).
 - **Explicabilité** : `LayerIntegratedGradients` appliquée aux couches d'embeddings avec référence `[PAD]`.
