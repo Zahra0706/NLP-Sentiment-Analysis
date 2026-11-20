@@ -594,19 +594,6 @@ if current and current["text"] == review_input.strip():
                 </div>
             </div>
         </div>
-        
-        <div class="dist-bar">
-            <div class="dist-pos" style="width:{pred['positive']*100}%;"></div>
-            <div class="dist-neg" style="width:{pred['negative']*100}%;"></div>
-        </div>
-        <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#94A3B8; margin-top:3px;">
-            <span>Positif : {pred['positive']:.1%}</span>
-            <span>Négatif : {pred['negative']:.1%}</span>
-        </div>
-        
-        <div style="font-size:0.72rem; color:#64748B; margin-top:8px;">
-            Temps de calcul : {current['total_time']:.2f} s (Inférence : {current['t_infer']*1000:.1f} ms · XAI : {current['t_xai']:.2f} s)
-        </div>
     </div>
     """, unsafe_allow_html=True)
     
