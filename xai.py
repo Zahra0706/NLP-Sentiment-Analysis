@@ -1,9 +1,9 @@
 """Explications locales de DistilBERT avec Layer Integrated Gradients (Captum).
 
 Les contributions sont calculées pour la classe prédite :
-  > 0 : le token soutient cette classe par rapport à la référence.
-  < 0 : le token s'oppose à cette classe par rapport à la référence.
-Elles ne sont ni des probabilités ni des explications causales.
+  > 0 : le mot soutient cette classe par rapport à la référence [PAD].
+  < 0 : le mot s'oppose à cette classe par rapport à la référence [PAD].
+Elles représentent des attributions de gradient locales et non des preuves causales.
 """
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ def explain_prediction(
     predicted_class: int,
     *,
     max_length: int = 256,
-    n_steps: int = 24,
+    n_steps: int = 16,
 ) -> dict:
     """Calcule les contributions des mots d'un avis à la classe prédite.
 
@@ -115,6 +115,13 @@ def explain_prediction(
                     if not special and end > begin]
     analyzed_end = max(visible_ends, default=0)
 
+    positive_words = [w for w in words if w["score"] > 0]
+    negative_words = [w for w in words if w["score"] < 0]
+    pos_sum = float(sum(w["score"] for w in positive_words))
+    neg_sum = float(sum(w["score"] for w in negative_words))
+    total_subtokens = int(attention_mask.sum().item())
+    special_count = int(sum(special_mask))
+
     return {
         "words": words,
         "convergence_delta": float(delta.detach().cpu().abs().mean().item()),
@@ -122,4 +129,10 @@ def explain_prediction(
         "truncated": analyzed_end < len(text.rstrip()),
         "target_class": int(predicted_class),
         "n_steps": n_steps,
+        "positive_words": sorted(positive_words, key=lambda x: x["score"], reverse=True),
+        "negative_words": sorted(negative_words, key=lambda x: x["score"]),
+        "positive_sum": pos_sum,
+        "negative_sum": neg_sum,
+        "total_subtokens": total_subtokens,
+        "effective_subtokens": total_subtokens - special_count,
     }
